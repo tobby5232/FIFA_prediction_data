@@ -1,0 +1,254 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec 14 22:40:09 2022
+
+@author: ch406
+"""
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import re
+import numpy as np
+
+sns.set_style('darkgrid')
+
+
+#%%
+# Import all world cup odd
+df_odd = pd.read_csv('WorldCup_odd.csv')
+
+#Modifed team name
+for i in range(len(df_odd["Team1"])):
+    df_odd["Team1"][i]=df_odd["Team1"][i].replace('\xa0', '')
+    df_odd["Team2"][i]=df_odd["Team2"][i].replace('\xa0', '')
+    df_odd["Team1"][i]=df_odd["Team1"][i].replace('&', 'and')
+    df_odd["Team2"][i]=df_odd["Team2"][i].replace('&', 'and')
+    df_odd["Team1"][i]=df_odd["Team1"][i].replace('USA', 'United States')
+    df_odd["Team2"][i]=df_odd["Team2"][i].replace('USA', 'United States')
+    df_odd["Team1"][i]=df_odd["Team1"][i].replace('Serbia and Montenegro', 'Serbia')
+    df_odd["Team2"][i]=df_odd["Team2"][i].replace('Serbia and Montenegro', 'Serbia')
+
+df_odd=df_odd.sort_values(by=['Team1','Team2'])
+df_odd.rename(columns={'Year':'date','Team1':'home_team','Team2':'away_team'
+                       ,'Team1_odd':'home_team_odd','Team2_odd':'away_team_odd'},inplace = True)
+df_odd=df_odd.reset_index(drop=True)
+
+# print(df_odd.info())
+
+#%%
+#Import all comptition result
+df_result = pd.read_csv('results.csv')
+
+#Simplifized date formate to year only
+for i in range(len(df_result["date"])):
+    df_result["date"][i]=df_result["date"][i][:4]
+df_result["date"]=df_result["date"].astype(int)
+year=df_result['date'].unique()
+
+#Simplifized dataFrame only world cup betewwn 2006~2018
+df_result=df_result[(df_result['date'] <2022) & (df_result['date'] >=2006) & (df_result['tournament']=='FIFA World Cup')]
+df_result=df_result[['date','home_team','away_team','home_score','away_score']]
+
+df_result=df_result.sort_values(by=['home_team','away_team'])
+df_result=df_result.reset_index(drop=True)
+
+# print(df_result)
+
+#%%
+#Check df_odd missing data
+
+result1 = df_odd.merge(df_result, how='outer', indicator=True).loc[lambda x : x['_merge'] == 'left_only']
+result1=result1[['date','home_team','away_team']].sort_values(by=['date','home_team','away_team'])
+
+result2 = df_odd.merge(df_result, how='outer', indicator=True).loc[lambda x : x['_merge'] == 'right_only']
+result2=result2[['date','home_team','away_team']].sort_values(by=['date','home_team','away_team'])
+print(result1.info())
+print(result2.info())
+
+#Merge two tables
+df_OddAndResult = df_odd.merge(df_result, how='inner', indicator=False)
+# print(df_OddAndResult.info())
+
+#%%
+#Add column result(win,lose,draw)
+
+result_list=[]
+
+for i in range(len(df_OddAndResult)):
+    if df_OddAndResult['home_score'][i]>df_OddAndResult['away_score'][i]:
+        result_list.append('win')
+    elif df_OddAndResult['home_score'][i]<df_OddAndResult['away_score'][i]:
+        result_list.append('lose')
+    else:
+        result_list.append('draw')
+
+df_OddAndResult.insert(3,'result',result_list)
+
+# print(df_OddAndResult.head())
+    
+#%%
+#Add column odd difference
+
+odd_difference=[]
+
+for i in range(len(df_OddAndResult)):
+    odd_dif=df_OddAndResult['home_team_odd'][i]-df_OddAndResult['away_team_odd'][i]
+    odd_difference.append(odd_dif)
+
+df_OddAndResult.insert(9,'odd_dif',odd_difference)
+
+# print(df_OddAndResult[['home_team_odd','away_team_odd','Draw_odd','odd_dif']].head(10))
+
+#%%
+#List all nation name(df_OddAndResult)
+nation_name_home=df_OddAndResult['home_team'].unique()
+nation_name_away=df_OddAndResult['away_team'].unique()
+
+nation_name_list=np.concatenate([nation_name_home,nation_name_away])#Concat nparray
+nation_name_set=set(nation_name_list)#Unique nparray
+nation_name=list(nation_name_set)
+nation_name.sort()
+
+print(nation_name)
+print(len(nation_name))
+
+#%%
+#Import team rating
+
+df_rating = pd.read_csv('AllTeamRating.csv')
+df_rating=df_rating[['nation','overall','attack','mid','defence']]
+for i in range(len(df_rating["nation"])):
+    df_rating["nation"][i]=df_rating["nation"][i].replace("Côte d'Ivoire", "Ivory Coast")
+    df_rating["nation"][i]=df_rating["nation"][i].replace("Korea Republic", "South Korea")
+    
+Countary=list(df_rating['nation'].unique())
+Countary.sort()
+
+print(Countary)
+print(len(Countary))
+
+#Groupby different and average the rating
+df_rating_group=df_rating.groupby(['nation']).agg(['mean'])
+#Rating 縮減到小數後兩位
+df_rating_group=df_rating_group.applymap(lambda x: '%.2f'%x)
+print(df_rating_group)
+
+#%%
+#List all country name(df_rating)
+nation_set=set(nation_name)
+Countary_set=set(Countary)
+
+#Check missing countary
+print(nation_set-Countary_set)
+print('-'*100)
+print(Countary_set-nation_set)
+
+#%%
+#Insert team rating data to df_OddAndResult
+
+ovr_home=[]
+att_home=[]
+mid_home=[]
+defe_home=[]
+
+ovr_away=[]
+att_away=[]
+mid_away=[]
+defe_away=[]
+
+Insert_column=[ovr_home,att_home,mid_home,defe_home,
+               ovr_away,att_away,mid_away,defe_away]
+Insert_title=['ovr_home','att_home','mid_home','defe_home',
+               'ovr_away','att_away','mid_away','defe_away']
+
+for i in range(len(df_OddAndResult)):
+    for j in range(len(df_rating_group)):
+        if df_OddAndResult['home_team'][i]==df_rating_group.index[j]:
+            ovr_home.append(df_rating_group['overall']['mean'][j])
+            att_home.append(df_rating_group['attack']['mean'][j])
+            mid_home.append(df_rating_group['mid']['mean'][j])
+            defe_home.append(df_rating_group['defence']['mean'][j])
+        if df_OddAndResult['away_team'][i]==df_rating_group.index[j]:
+            ovr_away.append(df_rating_group['overall']['mean'][j])
+            att_away.append(df_rating_group['attack']['mean'][j])
+            mid_away.append(df_rating_group['mid']['mean'][j])
+            defe_away.append(df_rating_group['defence']['mean'][j])
+            
+for k in range(8):
+    df_OddAndResult.insert(k+10,Insert_title[k],Insert_column[k])
+    df_OddAndResult[Insert_title[k]]=df_OddAndResult[Insert_title[k]].astype('float64')
+print(df_OddAndResult.info())
+
+#%%
+# df_OddAndResult.to_csv("OddCombineRating.csv", index = None)
+            
+#%%
+#Import team ranking & Country_code
+df_ranking = pd.read_csv('AllTime_ranking.csv')
+df_country_code = pd.read_csv('Country_code.csv')
+# print(df_ranking.info())
+# print(df_country_code.info())
+
+#Replace contary_code as full country name in df_ranking
+df_ranking_merge = df_ranking.merge(df_country_code, how='inner', indicator=False)
+df_ranking_merge=df_ranking_merge[['Country','Year','Previous_Rank','Total_Points']]
+print(df_ranking_merge.info())
+
+#Check missing data
+# df_ranking_out = df_ranking.merge(df_country_code, how='outer', 
+#                                   indicator=True).loc[lambda x : x['_merge'] == 'left_only']
+# print(df_ranking_out)
+
+#%%
+#Insert team ranking data to df_OddAndResult
+Previous_Rank_home=[]
+Total_Points_home=[]
+
+Previous_Rank_away=[]
+Total_Points_away=[]
+
+insert_items=[Previous_Rank_home,Total_Points_home,
+              Previous_Rank_away,Total_Points_away]
+insert_items_title=['Previous_Rank_home','Total_Points_home',
+              'Previous_Rank_away','Total_Points_away']
+
+for i in range(len(df_OddAndResult)):
+    for j in range(len(df_ranking_merge)):
+        if df_OddAndResult['home_team'][i]==df_ranking_merge['Country'][j] and df_OddAndResult['date'][i]==df_ranking_merge['Year'][j]:
+            Previous_Rank_home.append(df_ranking_merge['Previous_Rank'][j])
+            Total_Points_home.append(df_ranking_merge['Total_Points'][j])
+        if df_OddAndResult['away_team'][i]==df_ranking_merge['Country'][j] and df_OddAndResult['date'][i]==df_ranking_merge['Year'][j]:
+            Previous_Rank_away.append(df_ranking_merge['Previous_Rank'][j])
+            Total_Points_away.append(df_ranking_merge['Total_Points'][j])
+            
+for k in range(4):
+    df_OddAndResult.insert(k+18,insert_items_title[k],insert_items[k])
+    df_OddAndResult[insert_items_title[k]]=df_OddAndResult[insert_items_title[k]].astype('float64')
+print(df_OddAndResult.info())
+
+#%%
+#Add columns for ovr/rank/points difference
+
+ovr_difference=[]
+rank_difference=[]
+point_difference=[]
+
+for i in range(len(df_OddAndResult)):
+    ovr_dif=df_OddAndResult['ovr_home'][i]-df_OddAndResult['ovr_away'][i]
+    ovr_difference.append(ovr_dif)
+    rank_dif=df_OddAndResult['Previous_Rank_home'][i]-df_OddAndResult['Previous_Rank_away'][i]
+    rank_difference.append(rank_dif)
+    point_dif=df_OddAndResult['Total_Points_home'][i]-df_OddAndResult['Total_Points_away'][i]
+    point_difference.append(point_dif)
+
+
+df_OddAndResult.insert(22,'ovr_dif',ovr_difference)
+df_OddAndResult.insert(23,'rank_dif',rank_difference)
+df_OddAndResult.insert(24,'points_dif',point_difference)
+print(df_OddAndResult.info())
+
+#%%
+df_OddAndResult.to_csv("cleanData.csv", index = None)
+
+
