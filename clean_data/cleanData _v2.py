@@ -275,6 +275,118 @@ df_OddAndResult.insert(27,'points_dif',point_difference)
 print(df_OddAndResult.info())
 
 #%%
-df_OddAndResult.to_csv("cleanData.csv", index = None)
+#Import Elo_rating data
+
+df_RloRating = pd.read_csv('Elo_cleanData.csv')
+#Nation_name in RloRating
+Rlo_nation=df_RloRating['Country_simp'].unique()
+
+print(df_RloRating.info())
+
+#%%
+#Inser Elo_rating data to df_OddAndResult
+
+Elo_ranking_home=[]
+Elo_rating_home=[]
+total_game_home=[]
+total_wins_home=[]
+goal_for_home=[]
+goal_against_home=[]
+
+Elo_ranking_away=[]
+Elo_rating_away=[]
+total_game_away=[]
+total_wins_away=[]
+goal_for_away=[]
+goal_against_away=[]
+
+Insert_Elo_column=[Elo_ranking_home,Elo_rating_home,total_game_home,total_wins_home,
+                   goal_for_home,goal_against_home,Elo_ranking_away,Elo_rating_away,
+                   total_game_away,total_wins_away,goal_for_away,goal_against_away]
+Insert_Elo_title=['Elo_ranking_home','Elo_rating_home','total_game_home',
+                  'total_wins_home','goal_for_home','goal_against_home',
+                  'Elo_ranking_away','Elo_rating_away','total_game_away',
+                  'total_wins_away','goal_for_away','goal_against_away']
+
+#Check nation name different
+# df_OddAndResult.insert(29,'if_match','N')
+
+for i in range(len(df_OddAndResult)):
+    for j in range(len(df_RloRating)):
+        if df_OddAndResult['home_team'][i]==df_RloRating['Country_simp'][j] and df_OddAndResult['date'][i]==df_RloRating['year'][j]:
+            Elo_ranking_home.append(df_RloRating['Elo_ranking'][j])
+            Elo_rating_home.append(df_RloRating['Elo_rating'][j])
+            total_game_home.append(df_RloRating['total_game'][j])
+            total_wins_home.append(df_RloRating['goal_for'][j])
+            goal_for_home.append(df_RloRating['total_wins'][j])
+            goal_against_home.append(df_RloRating['goal_against'][j])
+            # df_OddAndResult['if_match'][i]='Y'
+        if df_OddAndResult['away_team'][i]==df_RloRating['Country_simp'][j] and df_OddAndResult['date'][i]==df_RloRating['year'][j]:
+            Elo_ranking_away.append(df_RloRating['Elo_ranking'][j])
+            Elo_rating_away.append(df_RloRating['Elo_rating'][j])
+            total_game_away.append(df_RloRating['total_game'][j])
+            total_wins_away.append(df_RloRating['goal_for'][j])
+            goal_for_away.append(df_RloRating['total_wins'][j])
+            goal_against_away.append(df_RloRating['goal_against'][j])
+            # df_OddAndResult['if_match'][i]='Y'
+            
+for k in range(12):
+    df_OddAndResult.insert(k+29,Insert_Elo_title[k],Insert_Elo_column[k])
+
+print(df_OddAndResult.info())
+
+#%%
+#Add columns for win_rate/goal_balance
+
+win_rate_home=[]
+goal_balance_home=[]
+
+win_rate_away=[]
+goal_balance_away=[]
+
+for i in range(len(df_OddAndResult)):
+    wins_rate_home=df_OddAndResult['total_wins_home'][i]/df_OddAndResult['total_game_home'][i]*100
+    win_rate_home.append(wins_rate_home)
+    goals_balance_home=(df_OddAndResult['goal_for_home'][i]-df_OddAndResult['goal_against_home'][i])/df_OddAndResult['total_game_home'][i]
+    goal_balance_home.append(goals_balance_home)
+    wins_rate_away=df_OddAndResult['total_wins_away'][i]/df_OddAndResult['total_game_away'][i]*100
+    win_rate_away.append(wins_rate_away)
+    goals_balance_away=(df_OddAndResult['goal_for_away'][i]-df_OddAndResult['goal_against_away'][i])/df_OddAndResult['total_game_away'][i]
+    goal_balance_away.append(goals_balance_away)
+    
+df_OddAndResult.insert(41,'win_rate_home',win_rate_home)
+df_OddAndResult.insert(42,'goal_balance_home',goal_balance_home)
+df_OddAndResult.insert(43,'win_rate_away',win_rate_away)
+df_OddAndResult.insert(44,'goal_balance_away',goal_balance_away)
+# print(df_OddAndResult.info())
+
+#%%
+#Add columns for ovr/rank/points difference
+
+Elo_ranking_difference=[]
+Elo_rating_difference=[]
+win_rate_difference=[]
+goal_balance_difference=[]
+
+for i in range(len(df_OddAndResult)):
+    Elo_ranking_dif=df_OddAndResult['Elo_ranking_home'][i]-df_OddAndResult['Elo_ranking_away'][i]
+    Elo_ranking_difference.append(Elo_ranking_dif)
+    Elo_rating_dif=df_OddAndResult['Elo_rating_home'][i]-df_OddAndResult['Elo_rating_away'][i]
+    Elo_rating_difference.append(Elo_rating_dif)
+    win_rate_dif=df_OddAndResult['win_rate_home'][i]-df_OddAndResult['win_rate_away'][i]
+    win_rate_difference.append(win_rate_dif)
+    goal_balance_dif=df_OddAndResult['goal_balance_home'][i]-df_OddAndResult['goal_balance_away'][i]
+    goal_balance_difference.append(goal_balance_dif)
+
+
+df_OddAndResult.insert(45,'Elo_ranking_dif',Elo_ranking_difference)
+df_OddAndResult.insert(46,'Elo_rating_dif',Elo_rating_difference)
+df_OddAndResult.insert(47,'win_rate_dif',win_rate_difference)
+df_OddAndResult.insert(48,'goal_balance_dif',goal_balance_difference)
+print(df_OddAndResult.info())
+
+
+#%%
+df_OddAndResult.to_csv("cleanData_V2.csv", index = None)
 
 
