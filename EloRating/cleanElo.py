@@ -230,6 +230,68 @@ print(df_2018_rating.head())
 print(df_2018_rating.info())
 
 #%%
+# Import 2019 data
+df_2019_rating = pd.read_csv('2019.tsv',sep='\t')
+
+#Select necessary data
+colunm=['Elo_ranking','Country_simp','Elo_rating','avg_rank','avg_rating','total_game',
+        'total_wins','total_lose','total_draw','goal_for','goal_against']
+
+df_2019_rating.loc[-1]=df_2019_rating.columns
+df_2019_rating=df_2019_rating.iloc[:,[1,2,3,6,7,22,26,27,28,29,30]]
+df_2019_rating.columns=colunm
+
+df_2019_rating=df_2019_rating.astype({'Elo_ranking': 'int32',
+                                      'Elo_rating': 'int32',
+                                      'avg_rank': 'int32',
+                                      'avg_rating': 'int32',
+                                      'total_game': 'int32',
+                                      'total_wins': 'int32',
+                                      'total_lose': 'int32',
+                                      'total_draw': 'int32',
+                                      'goal_for': 'int32',
+                                      'goal_against': 'int32'})
+df_2019_rating=df_2019_rating.sort_values(by=['Elo_ranking'])
+df_2019_rating=df_2019_rating.reset_index(drop=True)
+df_2019_rating.insert(11,'year',2019)
+
+# print(df_2019_rating[df_2019_rating.isnull().values==True])
+df_2019_rating['Country_simp'].fillna(value='Not Namibia', inplace=True)
+print(df_2019_rating.head())
+print(df_2019_rating.info())
+
+#%%
+# Import 2020 data
+df_2020_rating = pd.read_csv('2020.tsv',sep='\t')
+
+#Select necessary data
+colunm=['Elo_ranking','Country_simp','Elo_rating','avg_rank','avg_rating','total_game',
+        'total_wins','total_lose','total_draw','goal_for','goal_against']
+
+df_2020_rating.loc[-1]=df_2020_rating.columns
+df_2020_rating=df_2020_rating.iloc[:,[1,2,3,6,7,22,26,27,28,29,30]]
+df_2020_rating.columns=colunm
+
+df_2020_rating=df_2020_rating.astype({'Elo_ranking': 'int32',
+                                      'Elo_rating': 'int32',
+                                      'avg_rank': 'int32',
+                                      'avg_rating': 'int32',
+                                      'total_game': 'int32',
+                                      'total_wins': 'int32',
+                                      'total_lose': 'int32',
+                                      'total_draw': 'int32',
+                                      'goal_for': 'int32',
+                                      'goal_against': 'int32'})
+df_2020_rating=df_2020_rating.sort_values(by=['Elo_ranking'])
+df_2020_rating=df_2020_rating.reset_index(drop=True)
+df_2020_rating.insert(11,'year',2020)
+
+# print(df_2020_rating[df_2020_rating.isnull().values==True])
+df_2020_rating['Country_simp'].fillna(value='Not Namibia', inplace=True)
+print(df_2020_rating.head())
+print(df_2020_rating.info())
+
+#%%
 # Import 2021 data
 df_2021_rating = pd.read_csv('2021.tsv',sep='\t')
 
@@ -295,7 +357,7 @@ print(df_2022_rating.info())
 #Concate all data
 
 newData=pd.concat([df_2006_rating,df_2008_rating,df_2010_rating,df_2012_rating,df_2014_rating,
-                   df_2016_rating,df_2018_rating,df_2021_rating,df_2022_rating])
+                   df_2016_rating,df_2018_rating,df_2019_rating,df_2020_rating,df_2021_rating,df_2022_rating])
 
 print(newData.info())
 

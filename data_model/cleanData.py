@@ -63,8 +63,8 @@ result1=result1[['date','home_team','away_team']].sort_values(by=['date','home_t
 
 result2 = df_odd.merge(df_result, how='outer', indicator=True).loc[lambda x : x['_merge'] == 'right_only']
 result2=result2[['date','home_team','away_team']].sort_values(by=['date','home_team','away_team'])
-print(result1.info())
-print(result2.info())
+# print(result1.info())
+# print(result2.info())
 
 #Merge two tables
 df_OddAndResult = df_odd.merge(df_result, how='inner', indicator=False)
@@ -122,8 +122,8 @@ nation_name_set=set(nation_name_list)#Unique nparray
 nation_name=list(nation_name_set)
 nation_name.sort()
 
-print(nation_name)
-print(len(nation_name))
+# print(nation_name)
+# print(len(nation_name))
 
 #%%
 #Import team rating
@@ -137,14 +137,14 @@ for i in range(len(df_rating["nation"])):
 Countary=list(df_rating['nation'].unique())
 Countary.sort()
 
-print(Countary)
-print(len(Countary))
+# print(Countary)
+# print(len(Countary))
 
 #Groupby different and average the rating
 df_rating_group=df_rating.groupby(['nation']).agg(['mean'])
 #Rating 縮減到小數後兩位
 df_rating_group=df_rating_group.applymap(lambda x: '%.2f'%x)
-print(df_rating_group)
+# print(df_rating_group)
 
 #%%
 #List all country name(df_rating)
@@ -152,9 +152,9 @@ nation_set=set(nation_name)
 Countary_set=set(Countary)
 
 #Check missing countary
-print(nation_set-Countary_set)
-print('-'*100)
-print(Countary_set-nation_set)
+# print(nation_set-Countary_set)
+# print('-'*100)
+# print(Countary_set-nation_set)
 
 #%%
 #Insert team rating data to df_OddAndResult
@@ -190,8 +190,7 @@ for i in range(len(df_OddAndResult)):
 for k in range(8):
     df_OddAndResult.insert(k+10,Insert_title[k],Insert_column[k])
     df_OddAndResult[Insert_title[k]]=df_OddAndResult[Insert_title[k]].astype('float64')
-print(df_OddAndResult.info())
-
+# print(df_OddAndResult.info())
 
 #%%
 # df_OddAndResult.to_csv("OddCombineRating.csv", index = None)
@@ -206,7 +205,7 @@ df_country_code = pd.read_csv('Country_code.csv')
 #Replace contary_code as full country name in df_ranking
 df_ranking_merge = df_ranking.merge(df_country_code, how='inner', indicator=False)
 df_ranking_merge=df_ranking_merge[['Country','Year','Previous_Rank','Total_Points']]
-print(df_ranking_merge.info())
+# print(df_ranking_merge.info())
 
 #Check missing data
 # df_ranking_out = df_ranking.merge(df_country_code, how='outer', 
@@ -238,7 +237,7 @@ for i in range(len(df_OddAndResult)):
 for k in range(4):
     df_OddAndResult.insert(k+18,insert_items_title[k],insert_items[k])
     df_OddAndResult[insert_items_title[k]]=df_OddAndResult[insert_items_title[k]].astype('float64')
-print(df_OddAndResult.info())
+# print(df_OddAndResult.info())
 
 #%%
 #Add columns for ovr/rank/points difference
@@ -272,6 +271,19 @@ df_OddAndResult.insert(24,'mid_dif',mid_difference)
 df_OddAndResult.insert(25,'defe_dif',defe_difference)
 df_OddAndResult.insert(26,'rank_dif',rank_difference)
 df_OddAndResult.insert(27,'points_dif',point_difference)
+# print(df_OddAndResult.info())
+
+#%%
+#Simplized data
+df_OddAndResult=df_OddAndResult[['result',
+                                 'Draw_odd',
+                                 'odd_dif',
+                                 'ovr_dif',
+                                 'att_dif',
+                                 'mid_dif',
+                                 'defe_dif',
+                                 'rank_dif',
+                                 'points_dif']]
 print(df_OddAndResult.info())
 
 #%%
