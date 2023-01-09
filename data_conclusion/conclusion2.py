@@ -128,16 +128,45 @@ Sep=sepResult(9)
 Oct=sepResult(10)
 Nov=sepResult(11)
 Dec=sepResult(12)
+#%%
+#Draw pie chart for strong team winning rate for all time
+print(all_time_result[0])
+
+fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"),dpi=500)
+
+All_time=[all_time_result[1]/all_time_result[0], all_time_result[2]/all_time_result[0], all_time_result[3]/all_time_result[0]]
+All_time=[round(i,3)*100 for i in All_time]
+
+ingredients = ['winning_rate','draw_rate','lose_rate']
+
+
+def func(pct, allvals):
+    absolute = int(np.round(pct/10000.*np.sum(allvals)*4270))
+    return "{:.1f}%\n({:d} games)".format(pct, absolute)
+
+color1=['#01B468','#A6FFA6','#EA0000']
+wedges, texts, autotexts = ax.pie(All_time, autopct=lambda pct: func(pct, All_time),
+                                  colors=color1,
+                                  textprops=dict(color="black",size='1'))
+
+ax.legend(wedges, ingredients,
+          loc="best",
+          fontsize=5)
+
+plt.setp(autotexts, size=8, weight="bold")
+
+ax.set_title("Top team winning rate\n since 2006",
+             fontsize=7)
+
+plt.show()
 
 
 #%%
 #Plot bar chart for winning rate
-All_time=[all_time_result[3]/all_time_result[0], all_time_result[2]/all_time_result[0], all_time_result[1]/all_time_result[0]]
-All_time=[round(i,3)*100 for i in All_time]
+
 
 category_names = ['lose_rate', 'draw_rate','winning_rate']
 results = {
-    'All_time':All_time,
     'Jan': Jan,
     'Feb':Feb,
     'Mar':Mar,
@@ -160,22 +189,23 @@ def survey(results, category_names):
     category_colors = plt.colormaps['RdYlGn'](
         np.linspace(0.15, 0.85, data.shape[1]))
 
-    fig, ax = plt.subplots(figsize=(9.2, 6),dpi=500)
+    fig, ax = plt.subplots(figsize=(12.2, 9),dpi=500)
     ax.invert_yaxis()
     ax.xaxis.set_visible(False)
     ax.set_xlim(0, np.sum(data, axis=1).max())
+    ax.set_title('Top team winning rate since 2006 by mounth')
 
     for i, (colname, color) in enumerate(zip(category_names, category_colors)):
         widths = data[:, i]
         starts = data_cum[:, i] - widths
-        rects = ax.barh(labels, widths, left=starts, height=0.5,
+        rects = ax.barh(labels, widths, left=starts, height=0.6,
                         label=colname, color=color)
 
         r, g, b, _ = color
         text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
         ax.bar_label(rects,fmt='%.1f%%', label_type='center', color=text_color)
     ax.legend(ncol=len(category_names), bbox_to_anchor=(0, 1),
-              loc='lower left', fontsize='small')
+              loc=2, fontsize='small')
 
     return fig, ax
 

@@ -89,6 +89,70 @@ df_score_time['goal_dif'] = df_score_time.apply(lambda x: x['home_team_goal_coun
 print(df_score_time.info())
 
 #%%
+#Calculate stronger team winning rate
+df_stronger_team=df_score_time.copy()
+df_stronger_team=df_stronger_team[['home_team_name','away_team_name','ranking_dif','goal_dif']]
+df_stronger_team.insert(len(df_stronger_team.columns),'result_strong_team',None)
+
+for i in range (len(df_stronger_team)):
+    if df_stronger_team['ranking_dif'][i]<0:
+        if df_stronger_team['goal_dif'][i]>0:
+            df_stronger_team['result_strong_team'][i]='win'
+        elif df_stronger_team['goal_dif'][i]<0:
+            df_stronger_team['result_strong_team'][i]='lose'
+        else:
+            df_stronger_team['result_strong_team'][i]='draw'
+    elif df_stronger_team['ranking_dif'][i]>0:
+        if df_stronger_team['goal_dif'][i]>0:
+            df_stronger_team['result_strong_team'][i]='lose'
+        elif df_stronger_team['goal_dif'][i]<0:
+            df_stronger_team['result_strong_team'][i]='win'
+        else:
+            df_stronger_team['result_strong_team'][i]='draw'
+            
+from collections import Counter
+
+countiong=Counter(df_stronger_team['result_strong_team'])
+
+win=countiong['win']
+draw=countiong['draw']
+lose=countiong['lose']
+
+# print(countiong)
+print(win,lose,draw)
+
+#%%
+#Draw pie chart for strong team winning rate in 2022 WC
+
+fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"),dpi=500)
+
+
+data = [win/64,draw/64,lose/64]
+data=[round(i,3)*100 for i in data]
+ingredients = ['winning_rate','draw_rate','lose_rate']
+
+
+def func(pct, allvals):
+    absolute = int(np.round(pct/10000.*np.sum(allvals)*64))
+    return "{:.1f}%\n({:d} games)".format(pct, absolute)
+
+color1=['#01B468','#A6FFA6','#EA0000']
+wedges, texts, autotexts = ax.pie(data, autopct=lambda pct: func(pct, data),
+                                  colors=color1,
+                                  textprops=dict(color="black",size='1'))
+
+ax.legend(wedges, ingredients,
+          loc="best",
+          fontsize=5)
+
+plt.setp(autotexts, size=8, weight="bold")
+
+ax.set_title("Top team winning rate\nin 2022 world cup",
+             fontsize=7)
+
+plt.show()
+
+#%%
 #Score timing for weak team
 score_timing_weak=[]
 weak_team_wining=0
@@ -130,7 +194,7 @@ print('weak team winning time:',weak_team_wining)
 #%%
 
 # make figure and assign axis objects
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 5),dpi=200)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 5),dpi=500)
 fig.subplots_adjust(wspace=0)
 
 # pie chart parameters
